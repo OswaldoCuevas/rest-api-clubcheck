@@ -9,31 +9,8 @@ export const addUser = async (req, res) => {
 export const addListUsers = async (req, res) => {
     res.send("añadiendo lista de usuarios") 
   }
-  export const InComingSync = async (req, res) => {
-    const { attendances } = req.body;
-    const customer = "id_customer1"
-     if(attendances.length == 24) {
-      const totalUsers = attendances.reduce((total, elemento) => total + elemento, 0);
-      const averageAttendance = attendances.map(hour =>  
-        {
-          const average = (hour/totalUsers)*100
-          return  average - Math.floor(average) > 0.5 ? Math.ceil(average) : Math.floor(average);
-        })
-        averageAttendance.push(customer)
-      const updates = new Array(24).fill("hour").map((hour,i) => `${hour+(i+1)} = IFNULL(?,${hour+(i+1)})`).join(",");
-      try{
-        const [rows] = await pool.query('UPDATE attendances SET '+updates+' WHERE (customer = ?)',averageAttendance );
-        res.json(rows);
-       }catch(e){
-        console.log(e);
-        const codeError = e.code;
-        res.status(500).json({codeError});
-       } 
-     }else{
-       res.status(500).send("Registros : "+attendances.length+" necesarios : 24");
-     }
-  }
-  export const OutBoundSync = async (req, res) => {
+
+  export const sync = async (req, res) => {
     const user_id = "id_user1";
     // {
     //   usuarios: objeto de usuario
