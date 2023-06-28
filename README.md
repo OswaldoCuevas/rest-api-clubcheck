@@ -57,8 +57,8 @@
 #### EditCustomer (PATCH) host/api/customers
 #### Sync (POST) host/api/customers/sync
 ##### {
-##### &nbsp;&nbsp;&nbsp;&nbsp;users : [user object]    
-##### &nbsp;&nbsp;&nbsp;&nbsp;subscriptions : [subscription object],
+##### &nbsp;&nbsp;&nbsp;&nbsp;users : [user object - (add "Id_user" refers to the local id)]    
+##### &nbsp;&nbsp;&nbsp;&nbsp;subscriptions : [subscription object (add "Id_subscription" refers to the local id)],
 ##### &nbsp;&nbsp;&nbsp;&nbsp;customer : customer object,
 ##### &nbsp;&nbsp;&nbsp;&nbsp;attendances : attendance object,
 ##### }  
