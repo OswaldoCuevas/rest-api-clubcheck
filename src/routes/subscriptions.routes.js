@@ -9,7 +9,7 @@ const router = new Router();
 
 router.post("/" , addSubscription);
 
-router.get("/list" , getListSubscriptions);
+router.post("/list/get" , getListSubscriptions);
 
-router.post("/list" , addListSubscriptions);
+router.post("/list/add" , addListSubscriptions);
 export default router

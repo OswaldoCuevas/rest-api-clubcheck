@@ -9,7 +9,9 @@ export const addUser = async (req, res) => {
 export const addListUsers = async (req, res) => {
     res.send("añadiendo lista de usuarios") 
   }
-  export const syncUP = async (req, res) => {
-    res.send("sincronizando toda la información del usuario") 
+  export const InComingSync = async (req, res) => {
+    res.send("sincronización entrante") 
   }
-
+  export const OutBoundSync = async (req, res) => {
+    res.send("sincronización saliente") 
+  }

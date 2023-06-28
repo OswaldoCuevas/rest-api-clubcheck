@@ -1,15 +1,41 @@
 import fs from 'fs';
 import path from 'path';
 import multer from 'multer';
+import { pool } from '../db.js';
 
 export const addCustomer = async (req, res) => {
-    res.send("añadiendo customer");
+    const {id,name} = req.body;
+    //Registro el usuario en la base de datos 
+    try{
+        const [rows] = await pool.query('INSERT INTO customers(id,name) VALUES (?,?)', [id,name]);
+        res.json(rows);
+    }catch(e){
+        const codeError = e.code;
+        res.status(500).json({codeError});
+    }
+
 }
 export const getCustomer = async (req, res) => {
-    res.send("obteniendo customer");
+    const {id} = req.body;
+    try {
+        const [rows] = await pool.query('SELECT * FROM customers WHERE id =?', [id]);
+        const [customer] = rows;
+        res.json(customer);
+    } catch (error) {
+        const codeError = e.code;
+        res.status(500).json({codeError});
+    }
 }
 export const editCustomer = async (req, res) => {
-    res.send("actualizando customer");
+    const {name, url_img, id} = req.body;
+   try{
+    const [rows] = await pool.query('UPDATE customers SET name = IFNULL(?,name), url_img = IFNULL(?,url_img) WHERE (id = ?)', [name, url_img,id]);
+    res.json(rows);
+   }catch(e){
+    const codeError = e.code;
+    res.status(500).json({codeError});
+   }
+  
 }
 
 const storage = multer.diskStorage({
