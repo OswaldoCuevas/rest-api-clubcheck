@@ -55,6 +55,13 @@
 #### GetCustomer (GET)  host/api/customers/:id
 #### AddCustomer (POST) host/api/customers
 #### EditCustomer (PATCH) host/api/customers
+#### Sync (POST) host/api/customers/sync
+##### {
+##### &nbsp;&nbsp;&nbsp;&nbsp;users : [user object]    
+##### &nbsp;&nbsp;&nbsp;&nbsp;subscriptions : [subscription object],
+##### &nbsp;&nbsp;&nbsp;&nbsp;customer : customer object,
+##### &nbsp;&nbsp;&nbsp;&nbsp;attendances : attendance object,
+##### }  
 ### attendances
 #### GetAttendance  (GET) host/api/attendances/:id
 #### AddAttendance  (POST) host/api/attendances
@@ -63,21 +70,15 @@
 #### GetUsers (POST) host/api/users/code
 #### AddUsers (POST) host/api/users/
 #### AddListUsers (POST) host/api/users/list
-#### OutBoundSync (POST) host/api/users/outbound_sync
-#### req {id}(user code)
+#### Sync (POST) host/api/users/sync
+#### req "id"(user code)
 ##### {
 ##### &nbsp;&nbsp;&nbsp;&nbsp;users : user object    
 ##### &nbsp;&nbsp;&nbsp;&nbsp;subscriptions : [subscription object],
 ##### &nbsp;&nbsp;&nbsp;&nbsp;customer : customer object,
 ##### &nbsp;&nbsp;&nbsp;&nbsp;attendances : attendance object,
 ##### } 
-#### InComingSync (POST) host/api/users/incoming_sync
-##### {
-##### &nbsp;&nbsp;&nbsp;&nbsp;users : [user object]    
-##### &nbsp;&nbsp;&nbsp;&nbsp;subscriptions : [subscription object],
-##### &nbsp;&nbsp;&nbsp;&nbsp;customer : customer object,
-##### &nbsp;&nbsp;&nbsp;&nbsp;attendances : attendance object,
-##### }  
+
 ### subscriptions
 #### GetListSubscription (POST) host/api/subscriptions/list/get
 #### AddListSubscription (POST) host/api/subscriptions/list/add
