@@ -37,6 +37,30 @@ export const editCustomer = async (req, res) => {
    }
   
 }
+export const sync = async (req, res) => {// esta funcion registra masivamente la informacion enviada desde una app
+    const { attendances } = req.body;
+    const customer = "id_customer1"
+     if(attendances.length == 24) {// verificon que me haya enviado las 24 horas
+      const totalUsers = attendances.reduce((total, elemento) => total + elemento, 0); // obtengo la cantidad de usuarios totales 
+      const averageAttendance = attendances.map(hour =>  //con el array de 24 horas creo un nuevo arreglo pero promediado
+        {
+          const average = (hour/totalUsers)*100 // promedio el valor con el total de usaurios
+          return  average - Math.floor(average) > 0.5 ? Math.ceil(average) : Math.floor(average);// retorno el valor redondeado
+        })
+        averageAttendance.push(customer)// añado la id de customer para poder agregarlo al sql
+      const updates = new Array(24).fill("hour").map((hour,i) => `${hour+(i+1)} = IFNULL(?,${hour+(i+1)})`).join(",");// creo las columnas y su valor de actualización para añadirlo al sql (del hour1 al hour24)
+      try{
+        const [rows] = await pool.query('UPDATE attendances SET '+updates+' WHERE (customer = ?)',averageAttendance );// actualizo las attendances
+        res.json(rows);
+       }catch(e){
+        console.log(e);
+        const codeError = e.code;
+        res.status(500).json({codeError});
+       } 
+     }else{
+       res.status(500).send("Registros : "+attendances.length+" necesarios : 24");
+     }
+  }
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
