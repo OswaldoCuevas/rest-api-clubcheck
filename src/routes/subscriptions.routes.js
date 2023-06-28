@@ -2,12 +2,15 @@ import { Router } from "express";
 import {  
          addSubscription,
          addListSubscriptions,
-         getListSubscriptions
-        } from "../controllers/subscriptions.contoller.js";
+         getListSubscriptions,
+         sync
+        } from "../controllers/subscriptions.controller.js";
 
 const router = new Router();
 
 router.post("/" , addSubscription);
+
+router.post("/sync", sync); 
 
 router.post("/list/get" , getListSubscriptions);
 
