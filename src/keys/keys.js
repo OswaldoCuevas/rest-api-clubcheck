@@ -1,0 +1,2 @@
+export const keyApplication = "key-Afk54d42f356?*_dfDS412Ffd4$3$1ss241dd_fgDSds421DSg32_dp4241fla_ko_ñe032u8ufnfFSD"
+export const keyAuthorization = "key-KH45K3gGOg#%dsdf$l_-gsdR31G8490_grfD32lgr0oD_fds13dfaJFhjfFJR_TJ6JT¡??Gg?*Gher"

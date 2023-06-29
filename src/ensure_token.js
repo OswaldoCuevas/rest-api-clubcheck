@@ -1,32 +1,29 @@
 import jwt  from "jsonwebtoken";
 import { pool } from './db.js'
+import { keyAuthorization } from './keys/keys.js';
+
 export const ensuresToken = async (req, res, next) =>{
     const bearerHeader = req.headers['authorization']
     if(typeof bearerHeader != 'undefined')
      {
-         const bearer = bearerHeader.split(" ");
-         const bearerToken = bearer[1];
-         req.token = bearerToken
+         req.token = bearerHeader
       
-         jwt.verify(req.token,"secret_pasword_mobemmanuel",async (err, data) =>{
+         jwt.verify(req.token,keyAuthorization,async (err, data) =>{
             if(err){
+                console.log("no autorizado");
                 res.sendStatus(403)
                 
-            }else{
-                try{
-                    const {user_id} = data;
-                    const [rows] = await pool.query("SELECT * FROM users where user_id=?;",[user_id]);
-                    req.user = rows[0];
-                }catch (e){
-                    return res.status(500).send({error:e.message});
-                }   
-               
+            }else{    
+                const {id} = data
+                const [rows] = await pool.query("SELECT * FROM customers where id=?;",[id]);
+                req.customer = rows[0];         
                 next();
                 
             }
         })
          
      }else{
+        console.log("no autorizado");
          res.sendStatus(403)
      }
  }

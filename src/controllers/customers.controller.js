@@ -2,35 +2,36 @@ import fs from 'fs';
 import path from 'path';
 import multer from 'multer';
 import { pool } from '../db.js';
+import jwt  from "jsonwebtoken";
+import { keyApplication,keyAuthorization } from '../keys/keys.js';
 import { error } from 'console';
 import  * as Subscriptions from './subscriptions.controller.js';
 export const addCustomer = async (req, res) => {
-    const {id,name} = req.body;
-    //Registro el usuario en la base de datos 
+    const {id,name,key} = req.body;
     try{
-        const [rows] = await pool.query('INSERT INTO customers(id,name) VALUES (?,?)', [id,name]);
-        res.json(rows);
+        if(key == keyApplication){
+            const [rows] = await pool.query('INSERT INTO customers(id,name) VALUES (?,?)', [id,name]);
+            const token = jwt.sign({id},keyAuthorization)
+            res.json({text:"logeado",token});
+        }else{
+            res.sendStatus(403)
+        }
+        
     }catch(e){
         const codeError = e.code;
+        console.log(e);
         res.status(500).json({codeError});
     }
 
 }
 export const getCustomer = async (req, res) => {
-    const {id} = req.body;
-    try {
-        const [rows] = await pool.query('SELECT * FROM customers WHERE id =?', [id]);
-        const [customer] = rows;
-        res.json(customer);
-    } catch (error) {
-        const codeError = e.code;
-        res.status(500).json({codeError});
-    }
+    res.json(req.customer);
 }
 export const editCustomer = async (req, res) => {
-    const {name, url_img, id} = req.body;
+    const customer = req.customer.id;
+    const {name, url_img} = req.body;
    try{
-    const [rows] = await pool.query('UPDATE customers SET name = IFNULL(?,name), url_img = IFNULL(?,url_img) WHERE (id = ?)', [name, url_img,id]);
+    const [rows] = await pool.query('UPDATE customers SET name = IFNULL(?,name), url_img = IFNULL(?,url_img) WHERE (id = ?)', [name, url_img,customer]);
     res.json(rows);
    }catch(e){
     const codeError = e.code;
@@ -39,42 +40,35 @@ export const editCustomer = async (req, res) => {
   
 }
 export const sync = async (req, res) => {// esta funcion registra masivamente la informacion enviada desde una app
-    const { attendances,users } = req.body;
-    const customer = "id_customer1"
-    if(attendances.length == 24) {// verificon que me haya enviado las 24 horas
-        const averageAttendance = ArrayAverage(attendances);
-        averageAttendance.push(customer)// añado la id de customer para poder agregarlo al sql
-        try{
-                const updates = new Array(24).fill("hour").map((hour,i) => `${hour+(i+1)} = IFNULL(?,${hour+(i+1)})`).join(",");// creo las columnas y su valor de actualización para añadirlo al sql (del hour1 al hour24)
-                const [rows] = await pool.query('UPDATE attendances SET '+updates+' WHERE (customer = ?)',averageAttendance );// actualizo las attendances
-                try{
-                    let arrayUserSync = [];
-                    for (const user of users){
-                        const userSync = await RegistrateUser(customer,user);
-                        if(userSync.status == "success"){
-                            arrayUserSync.push(userSync);
-                            
-                        }else{
-                        }
-                       
-                    }
-                 
-                    res.json(arrayUserSync);
-                }catch(e){
-                    console.log(e);
-                    const codeError = e.code;
-                    res.status(500).json({codeError});
-                } 
-        }catch(e){
-                console.log(e);
-                const codeError = e.code;
-                res.status(500).json({codeError});
-        } 
-    }else{
-       res.status(500).send("Registros : "+attendances.length+" necesarios : 24");
-    }
+    let { attendances,users } = req.body;
+    const customer = req.customer.id;
+     if(typeof attendances === 'undefined' ){
+        
+     } else{
+        attendances = await registerAttendance(attendances,customer);
+        console.log(attendances);
+        if(attendances.number_error==400){
+            return res.status(400).json(attendances);
+        }
+        if(typeof users === 'undefined' ){
+            return res.json({status: 'success'});
+        }
+     }
+    
+    try{
+        let arrayUserSync = [];
+        for (const user of users){
+            const userSync = await RegistrateUser(customer,user);
+            arrayUserSync.push(userSync);
+        }
+        res.json(arrayUserSync)
+    }catch(e){
+     
+        const codeError = e.code;
+        res.status(500).json({codeError});
+    } 
+   
   }
-
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, 'uploads/')
@@ -100,6 +94,23 @@ export const getImg =  async (req, res) => {
     res.writeHead(200,{'content-type':'image/png'});
     fs.createReadStream(path.resolve() + '/uploads/'+name).pipe(res);
 }
+async function registerAttendance(attendances,customer){
+    if(attendances.length == 24) {// verificon que me haya enviado las 24 horas
+        const averageAttendance = ArrayAverage(attendances);
+        averageAttendance.push(customer)// añado la id de customer para poder agregarlo al sql
+        try{
+                const updates = new Array(24).fill("hour").map((hour,i) => `${hour+(i+1)} = IFNULL(?,${hour+(i+1)})`).join(",");// creo las columnas y su valor de actualización para añadirlo al sql (del hour1 al hour24)
+                const [rows] = await pool.query('UPDATE attendances SET '+updates+' WHERE (customer = ?)',averageAttendance );// actualizo las attendances
+                return {status:"success"};
+        }catch(e){
+                console.log(e);
+                const codeError = e.code;
+                return {status:"error", number_error:500 ,message:codeError};
+        } 
+    }else{
+        return {status:"error", number_error:400 ,message:"Registros : "+attendances.length+" necesarios : 24"};
+    }
+}
 function ArrayAverage(array){
     const totalUsers = array.reduce((total, elemento) => total + elemento, 0); // obtengo la cantidad de usuarios totales 
     return array.map(hour =>  //con el array de 24 horas creo un nuevo arreglo pero promediado
@@ -108,7 +119,7 @@ function ArrayAverage(array){
         return  average - Math.floor(average) > 0.5 ? Math.ceil(average) : Math.floor(average);// retorno el valor redondeado
       })
 }
-function GenerateCode(){
+export function GenerateCode(){
     const size = 9;
     const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     return new Array(size).fill("").map(element => {
@@ -136,3 +147,4 @@ async function RegistrateUser(customer,user){
         return codeError == "ER_DUP_ENTRY" ?RegistrateUser(customer,user):{status:"error", number_error:500 ,message:codeError};
     } 
 }
+

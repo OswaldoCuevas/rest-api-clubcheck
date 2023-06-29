@@ -22,9 +22,9 @@ app.use(express.json());
 
 app.use("/api/customers", customersRoutes )
 
-app.use("/api/attendances", attendancesRoutes )
+app.use("/api/attendances",ensuresToken,attendancesRoutes )
 
-app.use("/api/subscriptions",subscriptionsRoutes )
+app.use("/api/subscriptions",ensuresToken,subscriptionsRoutes )
 
 app.use("/api/users",userRoutes)
 
