@@ -6,7 +6,6 @@ export const getUser = async (req, res) => {
   try{
     const [users] = await pool.query('SELECT * FROM users where id = ?;', [code]);
     const [user] = users;
-    Firebase.setMessage("fWDgORBsR3SuuVJxYHVnPH:APA91bHHrYS1j_13ds-WiEM_xjRrIKfmT1A3X1cZcQ_7h7kiNEXmHCxLp5qfrfPqcPXQgYuVwfBGvlpYJ8m-OyEY_zZep33hICupREhMef3F0T-nvE1HgcBs5S-MUQw2ezfjtAUvTowB");
     res.json(user);
   }catch(e){
     const errorCode = e.code ;

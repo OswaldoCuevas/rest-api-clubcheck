@@ -1,5 +1,6 @@
 import admin from "firebase-admin";
 import cron  from "node-cron";
+import { pool } from './db.js';
 const serviceAccount = {
   "type": "service_account",
   "project_id": "clubcheck-1222d",
@@ -13,12 +14,15 @@ const serviceAccount = {
   "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-igjyw%40clubcheck-1222d.iam.gserviceaccount.com",
   "universe_domain": "googleapis.com"
 }
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
 export function firebaseProgramed(){
-
-  
+ 
+  //setMessage("55bFtGWjx");
   // Utilizando node-cron para programar la función a las 8:40 PM todos los días
-  const tareaDiaria = cron.schedule('45 21 * * *', () => {
-    console.log('La función se está ejecutando a las 8:44 PM.');
+  const tareaDiaria = cron.schedule('01 21 * * *', () => {
+    SendMessages();
   }, {
     timezone: 'America/Mexico_City' // Asegúrate de ajustar la zona horaria a tu ubicación.
   });
@@ -27,23 +31,43 @@ export function firebaseProgramed(){
   tareaDiaria.start();
   
 }
-  export function setMessage(token){
-  
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount)
-    });
-    var registrationToken = "TOKEN_DEL_DISPOSITIVO_AQUI";
-    
+async function SendMessages(){
+  const [messages_firebase] = await pool.query('select * from messages_firebase where days_remaining <= 3 and days_remaining >=0;');
+  for(let message_firebase of messages_firebase){
+    setMessage(message_firebase)
+  }
+}
+async function SendMessage(code, message){
+  // const [messages_firebase] = await pool.query('select * from messages_firebase where days_remaining <= 3 and days_remaining >=0 and code = ?;', [code]);
+  // setMessage(messages_firebase);
+}
+export async function setMessage(message_firebase){
+      const nameSplit = message_firebase.name_user.split(" ");
+      const name_user = nameSplit[0];
+      const title = `¡Hola ${name_user}!`
+      const token = message_firebase.token;
+      const logo = message_firebase.url_img == null ? "logo.png" : message_firebase.url_img;
+      let body;
+
+      switch (message_firebase.days_remaining){
+        case 3: body = `Le informamos que su suscripción en ${message_firebase.name_customer} finaliza dentro de ${message_firebase.days_remaining} días`;break;
+        case 2: body = `Le informamos que su suscripción en ${message_firebase.name_customer} finaliza dentro de ${message_firebase.days_remaining} días`;break;
+        case 1: body = `Le informamos que su suscripción en ${message_firebase.name_customer} finaliza dentro de un día`;break;
+        case 0: body = `Le informamos que su suscripción en ${message_firebase.name_customer} ha finalizado`;break;
+      }
+      console.log(title);
+      console.log(body);
     // Construye el mensaje a enviar
+    const img = GenerateImage();
     var message = {
       notification: {
-        title: "Notificacion de clubcheck",
-        body: "Cuerpo de la notificación"
+        title,
+        body,
       },
-      token: "fWDgORBsR3SuuVJxYHVnPH:APA91bHHrYS1j_13ds-WiEM_xjRrIKfmT1A3X1cZcQ_7h7kiNEXmHCxLp5qfrfPqcPXQgYuVwfBGvlpYJ8m-OyEY_zZep33hICupREhMef3F0T-nvE1HgcBs5S-MUQw2ezfjtAUvTowB"
+      token
     };
     
-    // Envía el mensaje utilizando el módulo de administración de Firebase
+    // // Envía el mensaje utilizando el módulo de administración de Firebase
     admin.messaging().send(message)
       .then(function(response) {
         console.log("Mensaje enviado exitosamente:", response);
