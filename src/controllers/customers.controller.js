@@ -25,6 +25,7 @@ export const addCustomer = async (req, res) => {
 
 }
 export const getCustomer = async (req, res) => {
+    console.log("imagen enviada")
     res.json(req.customer);
 }
 export const editCustomer = async (req, res) => {
@@ -39,10 +40,30 @@ export const editCustomer = async (req, res) => {
    }
   
 }
+export const updateLogo = async (req, res) => {
+    if(typeof req.file.filename !== 'undefined' ){
+
+    
+    const name = req.file.filename;
+    const customer = req.customer.id;
+   try{
+    const [rows] = await pool.query('UPDATE customers SET  url_img = IFNULL(?,url_img) WHERE (id = ?)', [name,customer]);
+    res.json({sucess:"success",name});
+   }catch(e){
+    const codeError = e.code;
+    res.status(500).json({codeError});
+   }
+}else{
+    res.status(400).json({sucess:"error"})
+}
+  
+  
+}
 export const sync = async (req, res) => {// esta funcion registra masivamente la informacion enviada desde una app
     let { attendances,users } = req.body;
     const customer = req.customer.id;
-     if(typeof attendances === 'undefined' ){
+    
+    if(typeof attendances === 'undefined' ){
         
      } else{
         attendances = await registerAttendance(attendances,customer);
@@ -61,7 +82,7 @@ export const sync = async (req, res) => {// esta funcion registra masivamente la
             const userSync = await RegistrateUser(customer,user);
             arrayUserSync.push(userSync);
         }
-        res.json(arrayUserSync)
+        res.json({users:arrayUserSync})
     }catch(e){
      
         const codeError = e.code;
@@ -89,11 +110,23 @@ const getDateToday = () =>{
     return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
     
 }
-export const getImg =  async (req, res) => {
-    const name = req.params.name;
-    res.writeHead(200,{'content-type':'image/png'});
-    fs.createReadStream(path.resolve() + '/uploads/'+name).pipe(res);
-}
+export const getImg = async (req, res) => {
+    try {
+      const name = req.params.name;
+      const filePath = path.resolve('./uploads/' + name);
+  
+      if (fs.existsSync(filePath)) {
+        res.writeHead(200, {'content-type': 'image/png'});
+        const fileStream = fs.createReadStream(filePath);
+        fileStream.pipe(res);
+      } else {
+        res.status(404).json({ message: 'Not Found' });
+      }
+    } catch (e) {
+      console.error(e);
+      res.status(500).json({ message: 'Internal Server Error' });
+    }
+  };
 async function registerAttendance(attendances,customer){
     if(attendances.length == 24) {// verificon que me haya enviado las 24 horas
         const averageAttendance = ArrayAverage(attendances);
@@ -147,4 +180,5 @@ async function RegistrateUser(customer,user){
         return codeError == "ER_DUP_ENTRY" ?RegistrateUser(customer,user):{status:"error", number_error:500 ,message:codeError};
     } 
 }
+
 

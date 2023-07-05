@@ -14,6 +14,7 @@ export const ensuresToken = async (req, res, next) =>{
                 res.sendStatus(403)
                 
             }else{    
+                console.log("verificado");
                 const {id} = data
                 const [rows] = await pool.query("SELECT * FROM customers where id=?;",[id]);
                 req.customer = rows[0];         
