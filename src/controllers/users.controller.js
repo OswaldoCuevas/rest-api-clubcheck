@@ -30,11 +30,14 @@ export const addUser = async (req, res) => {
 }
 export const addToken = async (req, res) => {
   const {code,token} = req.body;
-  const values = [token,code];
   console.log("token añadido");
   try{
-      const [rows] = await pool.query('INSERT INTO firebase (token,code) VALUES (?, ?)', values);
-      console.log("success");
+    const [select] = await pool.query('SELECT * FROM firebase where token = ?;',[token]);
+    if(select.length > 0){
+      const [rows] = await pool.query('UPDATE firebase SET code = ? WHERE (token = ?)', [code,token]);
+      return res.json({status:"success",code});
+    }
+      const [rows] = await pool.query('INSERT INTO firebase (token,code) VALUES (?, ?)', [token,code]);
       return res.json({status:"success",code});
   }catch(e){
     const errorCode =  e.code ;

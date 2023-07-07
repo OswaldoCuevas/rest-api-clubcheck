@@ -1,11 +1,28 @@
 import { pool } from '../db.js';
+import * as Firebase from '../notifications.js';
 import moment from 'moment-timezone';
 moment.tz.setDefault('America/Mazatlan');
 export const addSubscription = async (req, res) => {
     const {start_date,ending_date,code} = req.body
     const values = [code, start_date,ending_date]
     try{
-        const [rows] = await pool.query('INSERT INTO subscriptions (user, start_date, ending_date) VALUES (?, ?, ?);', values);
+       
+        await pool.query('INSERT INTO subscriptions (user, start_date, ending_date) VALUES (?, ?, ?);', values);
+        const [rows] = await pool.query(' SELECT * FROM messages_firebase where code = ?;', [code]);
+        if(rows.length > 0) {
+            const user = rows[0];
+            const nameSplit = user.name_user.split(" ");
+            const name = nameSplit[0];
+            const token = user.token;
+            const customer = user.name_customer;
+            const title = `¡Hola ${name}!`
+            const body =` Su suscripción a ${customer} con inicio en ${formateDate(start_date)} y fin en ${formateDate(ending_date)} fue registrada con éxito.`;
+            Firebase.SendFirebase(title,body,token)
+        }
+       
+        
+       
+        
         res.json({status: 'success'});
     }catch(e){
         const codeError = e.code;
@@ -13,6 +30,15 @@ export const addSubscription = async (req, res) => {
         console.log("error: "+e);
     }
 }
+function formateDate(date){
+    const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre","Diciembre"];
+    const splitDate = date.split("T");
+    date = splitDate[0].split("-");
+    const year =  date[0];
+    const month =  date[1];
+    const day =  date[2];
+   return ""+day+" de "+ months[month-1] + " del " + year;
+ }
 export const addListSubscriptions = async (req, res) => {
     const subscriptions = req.body;
     let ArraySubscriptions = [];

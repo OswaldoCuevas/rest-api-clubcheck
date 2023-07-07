@@ -1,30 +1,30 @@
-import express from "express";
-import * as firebase from "./notifications.js";
+import express from "express"; //importo el modulo de express
+import * as firebase from "./notifications.js";//importo em lmoudlo de las ntoficaciones de firebase
+//importo todas los routes
 import userRoutes from './routes/users.routes.js';
-import aplicationsRoutes from './routes/applications.routes.js';
 import subscriptionsRoutes from './routes/subscriptions.routes.js';
 import customersRoutes from './routes/customers.routes.js';
 
-import cors from 'cors';
-import { ensuresToken } from "./ensure_token.js";
-import path from 'path';
-import fs from 'fs';
+import cors from 'cors';//importo los cors
 
-const app = express();
-firebase.firebaseProgramed();
-app.use(cors());
+import { ensuresToken } from "./ensure_token.js";//importo el ensures token
 
-app.use(express.json());
+const app = express(); //empiezo autilizar express
 
-app.get("/api", (req,res)=>{ res.send("connected")})
+firebase.firebaseProgramed();//activo los mensajes progamados
+app.use(cors());//activo los cords para permitirle el acceso a todos
 
-app.use("/api/customers", customersRoutes )
+app.use(express.json());//acepto los mendajes json
 
-app.use("/api/subscriptions",ensuresToken,subscriptionsRoutes )
+app.get("/api", (req,res)=>{ res.send("connected")})//añado la ruta principal para saber si hay acceso a la api
 
-app.use("/api/users",userRoutes)
+app.use("/api/customers", customersRoutes )//rutas de customers
 
-app.use((req,res,next) => {
+app.use("/api/subscriptions",ensuresToken,subscriptionsRoutes )//rutas de subscriptions
+
+app.use("/api/users",userRoutes)//rutas de users
+
+app.use((req,res,next) => {//se muestra si la ruta no existe
     console.log("fuera");
     res.status(404).json({message:"endpoint not found"});
 });

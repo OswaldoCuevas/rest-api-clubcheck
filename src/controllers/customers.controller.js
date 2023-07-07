@@ -4,15 +4,14 @@ import multer from 'multer';
 import { pool } from '../db.js';
 import jwt  from "jsonwebtoken";
 import { keyApplication,keyAuthorization } from '../keys/keys.js';
-import { error } from 'console';
 import  * as Subscriptions from './subscriptions.controller.js';
 export const addCustomer = async (req, res) => {
-    const {id,name,key} = req.body;
+    const {id,name,key} = req.body; // el parametro key se necesita para comprobar si la solicitud se realiza desde la aplicación
     try{
         if(key == keyApplication){
             const [rows] = await pool.query('INSERT INTO customers(id,name) VALUES (?,?)', [id,name]);
-            const token = jwt.sign({id},keyAuthorization)
-            res.json({text:"logeado",token});
+            const token = jwt.sign({id},keyAuthorization)// se registra un nuevo token
+            res.json({text:"logeado",token});// se evnia el token
         }else{
             res.sendStatus(403)
         }
@@ -154,7 +153,7 @@ function ArrayAverage(array){
 }
 export function GenerateCode(){
     const size = 9;
-    const caracteres = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    const caracteres = "0123456789";
     return new Array(size).fill("").map(element => {
         var randomIndex = Math.floor(Math.random() * caracteres.length);
         return caracteres.charAt(randomIndex);
