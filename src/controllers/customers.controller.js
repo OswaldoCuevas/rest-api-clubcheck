@@ -10,7 +10,7 @@ export const addCustomer = async (req, res) => {
     try{
         if(key == keyApplication){
             const [rows] = await pool.query('INSERT INTO customers(id,name) VALUES (?,?)', [id,name]);
-            const [rows2] = await pool.query('INSERT INTO attendance (customer) VALUES (?)', [id]);
+            const [rows2] = await pool.query('INSERT INTO attendances (customer) VALUES (?)', [id]);
             
             const token = jwt.sign({id},keyAuthorization)// se registra un nuevo token
             res.json({text:"logeado",token});// se evnia el token
