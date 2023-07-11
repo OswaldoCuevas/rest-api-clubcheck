@@ -8,7 +8,7 @@ export const addSubscription = async (req, res) => {
     try{
        
         await pool.query('INSERT INTO subscriptions (user, start_date, ending_date) VALUES (?, ?, ?);', values);
-        const [rows] = await pool.query(' SELECT * FROM messages_firebase where code = ?;', [code]);
+        const [rows] = await pool.query(' SELECT * FROM messages_firebase where code = ? group by token;', [code]);
         for(let row of rows){
             const user = row;
             const nameSplit = user.name_user.split(" ");
