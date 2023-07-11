@@ -70,7 +70,7 @@ export const addToken = async (req, res) => {
         }
         const attendance = ArrayAttendance;
         try{
-          const [subscriptions] = await pool.query('SELECT * FROM subscriptions_view where user = ?;', [code]);
+          const [subscriptions] = await pool.query('SELECT * FROM subscriptions_view where user = ? order by ending_date desc;', [code]);
           try{
             const [customers] = await pool.query('SELECT * FROM customers where id = ?;', [user.customer]);
             const [customer] = customers;
