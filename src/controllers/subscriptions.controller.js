@@ -9,8 +9,8 @@ export const addSubscription = async (req, res) => {
        
         await pool.query('INSERT INTO subscriptions (user, start_date, ending_date) VALUES (?, ?, ?);', values);
         const [rows] = await pool.query(' SELECT * FROM messages_firebase where code = ?;', [code]);
-        if(rows.length > 0) {
-            const user = rows[0];
+        for(let row of rows){
+            const user = row;
             const nameSplit = user.name_user.split(" ");
             const name = nameSplit[0];
             const token = user.token;
@@ -19,10 +19,6 @@ export const addSubscription = async (req, res) => {
             const body =` Su suscripción a ${customer} con inicio en ${formateDate(start_date)} y fin en ${formateDate(ending_date)} fue registrada con éxito.`;
             Firebase.SendFirebase(title,body,token)
         }
-       
-        
-       
-        
         res.json({status: 'success'});
     }catch(e){
         const codeError = e.code;
