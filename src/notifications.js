@@ -6,6 +6,7 @@ admin.initializeApp({
   credential: admin.credential.cert(keys.serviceAccount)
 });
 export function firebaseProgramed(){
+  SendMessages();
  cron.schedule('04 06 * * *', () => {
     SendMessages();
   },
