@@ -14,7 +14,7 @@ export function firebaseProgramed(){
   }).start();
 }
 async function SendMessages(){
-  const [messages_firebase] = await pool.query('select * from messages_firebase where days_remaining <= 3 and days_remaining >=0;');
+  const [messages_firebase] = await pool.query('select code,name_user,name_customer,url_img,max(days_remaining) as days_remaining ,token from messages_firebase where days_remaining <= 3 and days_remaining >=0 group by code ;');
   for(let message_firebase of messages_firebase){
     setMessage(message_firebase)
   }
