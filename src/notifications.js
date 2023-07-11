@@ -14,7 +14,7 @@ export function firebaseProgramed(){
   }).start();
 }
 async function SendMessages(){
-  const [messages_firebase] = await pool.query('select code,name_user,name_customer,url_img,max(days_remaining) as days_remaining ,token from messages_firebase where days_remaining <= 3 and days_remaining >=0 group by code ;');
+  const [messages_firebase] = await pool.query('select code,name_user,name_customer,url_img,max(days_remaining) as days_remaining ,token from messages_firebase  group by code ;');
   for(let message_firebase of messages_firebase){
     setMessage(message_firebase)
   }
@@ -32,7 +32,10 @@ export async function setMessage(message_firebase){
         case 1: body = `Le informamos que su suscripción en ${message_firebase.name_customer} finaliza dentro de un día`;break;
         case 0: body = `Le informamos que su suscripción en ${message_firebase.name_customer} ha finalizado`;break;
       }
-      SendFirebase(title,body,token)
+      if(message_firebase.days_remaining <= 3 && message_firebase.days_remaining >=0){
+        SendFirebase(title,body,token)
+      }
+   
   }
 export function SendFirebase(title,body,token){
 const message = {notification: {title,body,},token};
